@@ -12,30 +12,38 @@ class WeatherPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Weather')),
       body: Center(
-        child: BlocBuilder<WeatherBloc, WeatherState>(
-          builder: (context, state) {
-            return switch (state) {
-              WeatherLoading() => const CircularProgressIndicator(),
-              WeatherLoaded(:final weather) => Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('${weather.temperature} °C'),
-                  Text('${weather.windSpeed} km/h'),
-                ],
-              ),
-              WeatherError(:final message) => Text(message),
-              _ => ElevatedButton(
-                onPressed: () {
-                  context.read<WeatherBloc>().add(
-                    FetchWeather(23.02, 72.57),
-                  );
-                },
-                child: const Text('Load Weather'),
-              ),
-            };
+        child: BlocListener<WeatherBloc, WeatherState>(
+          listener: (context, state) {
+            if (state case WeatherError(:final message)) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(message)),
+              );
+            }
           },
-        ),
-      ),
+          child:BlocBuilder<WeatherBloc, WeatherState>(
+            builder: (context, state) {
+              return switch (state) {
+                WeatherLoading() => const CircularProgressIndicator(),
+                WeatherLoaded(:final weather) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('${weather.temperature} °C'),
+                    Text('${weather.windSpeed} km/h'),
+                  ],
+                ),
+               _ => ElevatedButton(
+                  onPressed: () {
+                    context.read<WeatherBloc>().add(
+                      FetchWeather(23.02, 72.57),
+                    );
+                  },
+                  child: const Text('Load Weather'),
+                ),
+                // TODO: Handle this case.
+              };
+            },
+          ),
+        ),),
     );
   }
 }
